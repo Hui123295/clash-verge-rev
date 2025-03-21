@@ -30,6 +30,13 @@ export const ConnectionDetail = forwardRef<ConnectionDetailRef>(
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         open={open}
         onClose={onClose}
+        sx={{
+          ".MuiSnackbarContent-root": {
+            maxWidth: "520px",
+            maxHeight: "480px",
+            overflowY: "auto",
+          },
+        }}
         message={
           detail ? (
             <InnerConnectionDetail data={detail} onClose={onClose} />
@@ -37,7 +44,7 @@ export const ConnectionDetail = forwardRef<ConnectionDetailRef>(
         }
       />
     );
-  }
+  },
 );
 
 interface InnerProps {
@@ -51,32 +58,42 @@ const InnerConnectionDetail = ({ data, onClose }: InnerProps) => {
   const rule = rulePayload ? `${data.rule}(${rulePayload})` : data.rule;
   const host = metadata.host
     ? `${metadata.host}:${metadata.destinationPort}`
-    : `${metadata.destinationIP}:${metadata.destinationPort}`;
+    : `${metadata.remoteDestination}:${metadata.destinationPort}`;
+  const Destination = metadata.destinationIP
+    ? metadata.destinationIP
+    : metadata.remoteDestination;
 
   const information = [
-    { label: "Host", value: host },
-    { label: "Download", value: parseTraffic(data.download).join(" ") },
-    { label: "Upload", value: parseTraffic(data.upload).join(" ") },
+    { label: t("Host"), value: host },
+    { label: t("Downloaded"), value: parseTraffic(data.download).join(" ") },
+    { label: t("Uploaded"), value: parseTraffic(data.upload).join(" ") },
     {
-      label: "DL Speed",
+      label: t("DL Speed"),
       value: parseTraffic(data.curDownload ?? -1).join(" ") + "/s",
     },
     {
-      label: "UL Speed",
+      label: t("UL Speed"),
       value: parseTraffic(data.curUpload ?? -1).join(" ") + "/s",
     },
-    { label: "Chains", value: chains },
-    { label: "Rule", value: rule },
     {
-      label: "Process",
+      label: t("Chains"),
+      value: chains,
+    },
+    { label: t("Rule"), value: rule },
+    {
+      label: t("Process"),
       value: `${metadata.process}${
         metadata.processPath ? `(${metadata.processPath})` : ""
       }`,
     },
-    { label: "Time", value: dayjs(data.start).fromNow() },
-    { label: "Source", value: `${metadata.sourceIP}:${metadata.sourcePort}` },
-    { label: "Destination IP", value: metadata.destinationIP },
-    { label: "Type", value: `${metadata.type}(${metadata.network})` },
+    { label: t("Time"), value: dayjs(data.start).fromNow() },
+    {
+      label: t("Source"),
+      value: `${metadata.sourceIP}:${metadata.sourcePort}`,
+    },
+    { label: t("Destination"), value: Destination },
+    { label: t("DestinationPort"), value: `${metadata.destinationPort}` },
+    { label: t("Type"), value: `${metadata.type}(${metadata.network})` },
   ];
 
   const onDelete = useLockFn(async () => deleteConnection(data.id));
@@ -85,20 +102,21 @@ const InnerConnectionDetail = ({ data, onClose }: InnerProps) => {
     <Box sx={{ userSelect: "text" }}>
       {information.map((each) => (
         <div key={each.label}>
-          <b>{each.label}</b>: <span>{each.value}</span>
+          <b>{each.label}</b>
+          <span style={{ wordBreak: "break-all" }}>: {each.value}</span>
         </div>
       ))}
 
       <Box sx={{ textAlign: "right" }}>
         <Button
           variant="contained"
-          title="Close Connection"
+          title={t("Close Connection")}
           onClick={() => {
             onDelete();
             onClose?.();
           }}
         >
-          {t("Close")}
+          {t("Close Connection")}
         </Button>
       </Box>
     </Box>
